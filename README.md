@@ -15,15 +15,18 @@ A serverless Python application that monitors USD/KRW exchange rates, detects me
 ## Architecture
 
 ```mermaid
-flowchart TD
+flowchart LR
     A["GitHub Actions<br/>Scheduled / Manual"] --> B["Rate Ingestion<br/>Provider Fallback"]
     B --> C["Rules Engine<br/>Thresholds · Hysteresis · Spikes"]
-    S[("Persisted State<br/>Level · Rate History")] <--> C
-    C -->|No alert| X["Finish"]
-    C -->|Alert| D["Impact Calculator<br/>Deterministic Python"]
+    C -- No alert --> F["Finish"]
+    C -- Alert --> D["Impact Calculator<br/>Deterministic Python"]
     D --> E["Optional AI Briefing<br/>Claude + Web Search"]
-    E --> F["Notifier<br/>Email · Telegram · Slack"]
+    E --> N["Notifier<br/>Email · Telegram · Slack"]
+
+    S[("Persisted State<br/>Level · Rate History")]
+    S -. read .-> C
     F --> S
+    N --> S
 ```
 
 **Design decisions**
