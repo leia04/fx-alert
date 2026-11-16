@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "FX Alert: live rate, dry-run",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fx_alert",
+      "args": ["--dry-run"],
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "FX Alert: demo at 1405 (with AI, no send)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fx_alert",
+      "args": ["--force-rate", "1405", "--dry-run"],
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "FX Alert: demo at 1405 (actually send email)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "fx_alert",
+      "args": ["--force-rate", "1405"],
+      "envFile": "${workspaceFolder}/.env",
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

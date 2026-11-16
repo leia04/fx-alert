@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────
+#  FX Alert configuration (USD/KRW)
+# ─────────────────────────────────────────────
+
+# Alert levels: the rate moves up to a level once it is >= that threshold.
+# For demos, lower a threshold near the current rate or use --force-rate.
+levels:
+  - name: Watch
+    threshold: 1380
+  - name: Warning
+    threshold: 1400
+  - name: Critical
+    threshold: 1450
+
+# Hysteresis band (KRW): after crossing 1400, the rate must fall below
+# 1390 (= 1400 - 10) before the level is cleared. This prevents alert
+# storms when the rate bounces between 1399 and 1401.
+hysteresis: 10
+
+# Also notify when the level goes down (e.g. Warning -> Normal)
+notify_on_recovery: true
+
+# Spike detection: alert (max once per day) when the rate moves more than
+# `pct` percent compared to `lookback_hours` ago.
+spike:
+  enabled: true
+  pct: 1.0
+  lookback_hours: 24
+
+# Personal impact. All numbers are computed in code — the AI never does math.
+impact:
+  baseline: auto        # auto = average of the last `baseline_days` days, or a fixed number
+  baseline_days: 30
+  items:
+    - name: Monthly overseas transfer
+      usd: 500
+    - name: US trip budget (next month)
+      usd: 2000
+
+# AI briefing: called ONLY when an alert fires, to search the news and
+# explain why the rate moved.
+ai:
+  enabled: true
+  model: claude-sonnet-5-5
+  max_searches: 3
+  max_tokens: 1200
+  language: English      # language of the AI briefing
+
+# Rate data sources, tried in order; falls back to the next on failure.
+#  - exim: Export-Import Bank of Korea (needs EXIM_API_KEY, published ~11:00 KST on business days)
+#  - open_er_api: open.er-api.com (no key, updated once a day)
+#  - frankfurter: ECB reference rates (no key, updated once per business day)
+providers:
+  - exim
+  - open_er_api
+  - frankfurter
+
+# Max number of rate records kept in the state file
+history_limit: 500

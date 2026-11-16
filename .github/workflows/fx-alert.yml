@@ -1,0 +1,71 @@
+name: FX Alert
+
+on:
+  schedule:
+    # Every hour at :17 during Korean business hours (09:00-18:00 KST = 00:00-09:00 UTC), Mon-Fri.
+    # An off-the-hour minute avoids the top-of-hour scheduling rush on GitHub.
+    - cron: "17 0-9 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      force_rate:
+        description: "Demo: use this rate instead of the API (e.g. 1405). Leave empty for live data."
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run (print only, do not send)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: fx-alert
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # State (current level + rate history) is carried between runs with the Actions cache,
+      # so the repo is not flooded with hourly state commits.
+      - name: Restore state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: fx-state-${{ github.run_id }}
+          restore-keys: fx-state-
+
+      - name: Run FX Alert
+        env:
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          EXIM_API_KEY: ${{ secrets.EXIM_API_KEY }}
+          FORCE_RATE: ${{ inputs.force_rate }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          ARGS=""
+          if [ -n "$FORCE_RATE" ]; then ARGS="$ARGS --force-rate $FORCE_RATE"; fi
+          if [ "$DRY_RUN" = "true" ]; then ARGS="$ARGS --dry-run"; fi
+          python -m fx_alert $ARGS
+
+      - name: Save state
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: fx-state-${{ github.run_id }}
