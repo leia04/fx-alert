@@ -1,4 +1,4 @@
-# FX Alert — USD/KRW Exchange Rate Monitoring
+# FX Alert - USD/KRW Exchange Rate Monitoring
 
 A serverless Python application that monitors USD/KRW exchange rates, detects meaningful changes, and sends personalized alerts with optional AI-generated news briefings.
 
